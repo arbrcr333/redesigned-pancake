@@ -1,61 +1,49 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.express as px
 
-# App title
-st.title('Data Visualization App')
+# Define questions and options
+questions = [
+    "You find it easy to introduce yourself to other people.",
+    "You often get so lost in thoughts that you ignore or forget your surroundings.",
+    "You try to respond to your e-mails as soon as possible and cannot stand a messy inbox.",
+    "You find it easy to stay relaxed and focused even when there is some pressure.",
+    "You do not usually initiate conversations."
+]
 
-# Sidebar for user input features
-st.sidebar.header('Upload your CSV data')
-uploaded_file = st.sidebar.file_uploader("Choose a file", type=['csv'])
+options = [
+    "Strongly disagree", 
+    "Disagree", 
+    "Neutral", 
+    "Agree", 
+    "Strongly agree"
+]
 
-# Function to load the data
-@st.cache_data
-def load_data(file):
-    if file is not None:
-        df = pd.read_csv(file)
-        return df
-    else:
-        return pd.DataFrame()
-
-# Load the data
-df = load_data(uploaded_file)
-
-# Display the dataframe
-if not df.empty:
-    st.write(df)
-
-    # Selectbox for type of plot
-    plot_type = st.sidebar.selectbox('Select the type of plot', ['Line Chart', 'Bar Graph', 'Scatter Plot', 'Heatmap'])
-
-    # Plotting based on user selection
-    if plot_type == 'Line Chart':
-        st.subheader('Line Chart')
-        selected_columns = st.multiselect('Select columns to plot', df.columns)
-        if len(selected_columns) >= 1:
-            st.line_chart(df[selected_columns])
+# Function to diagnose personality based on responses
+def diagnose_personality(responses):
+    # This is a simplified example. You could add more sophisticated analysis here.
+    extroversion = introversion = 0
+    for response in responses:
+        if response > 3:
+            extroversion += 1
+        elif response < 3:
+            introversion += 1
     
-    elif plot_type == 'Bar Graph':
-        st.subheader('Bar Graph')
-        x_axis = st.selectbox('Choose a column for the X-axis:', df.columns)
-        y_axis = st.selectbox('Choose a column for the Y-axis:', df.columns)
-        st.bar_chart(df[[x_axis, y_axis]])
+    if extroversion > introversion:
+        return "Your responses suggest you might be more extroverted."
+    elif introversion > extroversion:
+        return "Your responses suggest you might be more introverted."
+    else:
+        return "Your responses suggest you have a balanced personality between extroversion and introversion."
 
-    elif plot_type == 'Scatter Plot':
-        st.subheader('Scatter Plot')
-        x_axis = st.selectbox('Choose a column for the X-axis:', df.columns, index=0)
-        y_axis = st.selectbox('Choose a column for the Y-axis:', df.columns, index=1)
-        fig = px.scatter(df, x=x_axis, y=y_axis)
-        st.plotly_chart(fig)
+# Streamlit app layout
+st.title('Personality Diagnosis')
 
-    elif plot_type == 'Heatmap':
-        st.subheader('Heatmap')
-        corr = df.corr()
-        fig, ax = plt.subplots()
-        sns.heatmap(corr, annot=True, ax=ax)
-        st.pyplot(fig)
+# Store responses
+responses = []
 
-else:
-    st.write("Please upload a CSV file to visualize data.")
+for i, question in enumerate(questions):
+    response = st.radio(question, options, key=i)
+    responses.append(options.index(response) + 1)  # Convert options to a scale of 1-5
+
+if st.button('Diagnose Personality'):
+    personality_type = diagnose_personality(responses)
+    st.success(personality_type)
